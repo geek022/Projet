@@ -14,7 +14,8 @@ echo "<tr><th>noserre</th><th>nomserre</th></tr>";
 while($enregistrement = $select->fetch())
 {
   // Affichage des champs noserre et nomserre'
-  echo "<tr><td>$enregistrement->noserre</td><td>$enregistrement->nomserre</td></tr>";
+  echo "<tr><td>$enregistrement->noserre</td><td><a href='http://127.0.0.1/tpPHP/detailRegion.php?noregion=".$enregistrement->noserre."'>$enregistrement->nomserre</td></tr>";
+
   //echo '<h1>', $enregistrement->noserre, ' ', $enregistrement->nomserre, '</h1>';
 }
 echo '</table>';
