@@ -11,11 +11,11 @@ try {
       die();
   }
 echo "<h1>Cliquez sur le lien pour afficher le n° de la region d'origine de la plante</h1>";
-$select = $connection->query("SELECT * FROM plante");
+$select = $connection->query("SELECT P.nomplante, R.nomregion,R.noregion,P.noplante FROM PLANTE P INNER JOIN REGION R ON P.noregion=R.noregion GROUP BY P.nomplante, R.nomregion,R.noregion,P.noplante");
 $select->setFetchMode(PDO::FETCH_OBJ);
 while($enregistrement = $select->fetch())
 {
- echo "<a href='http://127.0.0.1/tpPHP/detailRegion.php?noregion=".$enregistrement->noregion."'>".$enregistrement->nomplante.'</a><BR>';
+ echo "<a href='http://127.0.0.1/tpPHP/introPHP/detailPlante.php?noregion=".$enregistrement->noregion."'>".$enregistrement->nomplante.'</a><BR>';
 }
 ?>
 </body>

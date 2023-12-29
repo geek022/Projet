@@ -10,7 +10,7 @@
         $noserre = $_GET['noserre'];
         $nomserre = $_GET['nomserre'];
         // Connexion au serveur
-        require_once('connexion2.php');
+        require_once('conf/connexion2.php');
         // Suppression de données
         try {
         $requete =$connexion2->prepare("INSERT INTO serre(noserre, nomserre)VALUES(:noserre, :nomserre)");
