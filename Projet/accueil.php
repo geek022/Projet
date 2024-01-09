@@ -9,6 +9,7 @@
 <body>
   <?php
   include_once('formulaires/entete.html');
+  session_start();
   ?>
   <div class="row">
     <div class="col-md-9">

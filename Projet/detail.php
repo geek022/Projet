@@ -1,10 +1,16 @@
-<html>
+<?php
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Détail du livre</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
     <?php include('formulaires/entete.html'); ?>
     <?php
@@ -24,21 +30,11 @@
         echo "<h4>$res->titre </h4><br>";
         echo '<h4 class="text-danger">Résumé du livre</h4><br>';
         echo "<br><h4>" . $res->resume . "</h4><br>";
+        echo"<h4>Date de parution : ".$res->anneeparution. "</h4><br>";
         echo '</div>';
         echo '<div class="col-md-3">';
         echo '<img src="images/' . $res->image . ' "width="100%" height="75%">';
-        if(isset($_SESSION['user'])){
-            echo'<form method="post" action="panier.php">';
-            echo'<input type="hidden" name="nolvire" value="'.$_GET['nolivre'].'">';
-            echo'<button type="submit" class="btn btn-primary">Emprunter</button>';
-            echo'</form>';
-        }else{
-            echo'Vous devez vous connecter pour emprunter ce livre';
-        }
         echo '</div>';
-        echo'<div class="col-md-3">';
-        echo'<img src="images/'.$res->image.'"width="100%" height="75%">';
-        echo'</div>';
     }
     echo '<div class="col-md-3">';
     include('authentification.php');
@@ -52,17 +48,33 @@
         $req->bindParam(":livre", $_GET['nolivre']);
         $req->execute();
         $res = $req->fetch(PDO::FETCH_OBJ);
+    }
+    echo '</div>';
+    echo '</div>';
+    if (isset($_SESSION['profil']) == 'membre') {
+        if (empty($res)) {
+            echo '<div class="d-flex">';
+            echo '<h4 class="text-success">Disponible  </h4>';
+            echo '<div>';
+            echo '<form action="panier.php" method="post" >
+            <input type="submit" class="btn btn-outline-secondary text-center mx-4" value="Emprunter(ajout au panier)" name="emprunter">
+            <a href="panier.php" name="nolivre"></a>
+            </form>';
+            echo '</div>';
+            echo '</div>';
+            $_SESSION['emprunter'] = $_GET['nolivre'];
+        }else{
+            echo'<p class="text-danger">Indisponible</p>';
+        }
+    } else {
         if (empty($res)) {
             echo '<div class="d-flex">';
             echo '<h4 class="text-success">Disponible  </h4>';
             echo '<h4 class="text-danger mx-3">Pour pouvoir réserver vous dever posséder un compte et vous identifier.</h4>';
-            echo '</div>';
-        } else {
-            echo '<h4 class="text-danger">Non disponible</h4>';
+            echo '<div>';
         }
     }
-    echo '</div>';
-    echo '</div>';
     ?>
 </body>
+
 </html>
