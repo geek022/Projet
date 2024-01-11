@@ -1,3 +1,6 @@
+<?php
+ob_start();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -73,5 +76,8 @@
 
   ?>
 </body>
+<?php
+ob_end_flush();
+?>
 
 </html>

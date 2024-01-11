@@ -10,6 +10,12 @@
   <?php
   include_once('formulaires/entete.html');
   session_start();
+  if(isset($_SESSION['profil'])){
+    if($_SESSION['profil'] === 'admin'){
+      header('Location:menu_admin.php');
+      exit();
+    }
+  }
   ?>
   <div class="row">
     <div class="col-md-9">

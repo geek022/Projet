@@ -1,6 +1,11 @@
 <?php
 include_once('formulaires/entete.html');
 session_start();
+if (!isset($_SESSION['panier']) || !is_array($_SESSION['panier'])) {
+    $_SESSION['panier'] = array();
+}
+$nombreEmpruntsMax = 5 ;
+$empruntsEncours = $nombreEmpruntsMax - count($_SESSION['panier']);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -18,12 +23,19 @@ session_start();
         <div class="row">
             <div class="col-md-9">
                 <h1 class="text-center text-success">Votre panier </h1><br />
-                <p class="text-primary text-center">(encore 1 réservation possible, 1 emprunt en cours)</p>
+                <?php
+                if($empruntsEncours == 1){
+                    echo'<p class="text-primary text-center">(encore 1 réservation possible, ' . $empruntsEncours . ' emprunt en cours)</p>';
+                }else{
+                    echo'<p class="text-primary text-center">(encore ' . $empruntsEncours . ' réservation possibles, ' . $empruntsEncours . ' emprunts en cours)</p>';
+                }
+                ?>
                 <?php
                 require_once('conf/connexion.php');
                 if (isset($_POST['emprunter'])) {
                     if (isset($_SESSION['emprunter'])) {
-                        if (isset($_SESSION['panier']) && count($_SESSION['panier']) < 5) {
+                        if (isset($_SESSION['panier']) && is_array($_SESSION['panier'])) {
+                            if($empruntsEncours > 0){
                             $requete = $connexion->prepare("SELECT * FROM LIVRE WHERE nolivre =:emprunter ");
                             $requete->bindParam(":emprunter", $_SESSION['emprunter']);
                             $requete->execute();
@@ -40,13 +52,19 @@ session_start();
                             );
                             if (!isset($_SESSION['panier'])) {
                                 $_SESSION['panier'] = array();
+                            }if(!in_array($tableaux, $_SESSION['panier'])){
+                                array_push($_SESSION["panier"],$tableaux);
+                                $empruntsEncours--;
+                            }else{
+                                echo'<p class="text-danger text-center">Ce livre existe déja dans votre panier</p>';
                             }
-                            array_push($_SESSION['panier'], $tableaux);
                         } else {
-                            echo '<p class="text-danger">Vous avez atteint la limite d\'emprunts en cours (5).</p>';
+                            echo '<p class="text-danger text-center">Vous avez atteint la limite d\'emprunts en cours (5).</p>';
                         }
                     }
                 }
+            }
+                $livre = null;
                 foreach ($_SESSION['panier'] as $index => $livre) {
                     $requete = $connexion->prepare("SELECT * FROM LIVRE L INNER JOIN AUTEUR A ON (L.noauteur=A.noauteur) WHERE a.noauteur=:livre");
                     $requete->bindParam(":livre", $livre['noauteur']);
@@ -62,15 +80,22 @@ session_start();
                     echo '</div>';
                 }
                 if (isset($_POST['annuler'])) {
-                    unset($_SESSION['panier'][$index]);
+                    $index = array_search($livre,$_SESSION['panier']);
+                    if($index !== false){
+                        unset($_SESSION['panier'][$index]);
+                        $empruntsEncours++;
+                    }
                 }
                 if (isset($_POST['panier'])) {
                     $connexion->beginTransaction();
                     try {
                         foreach ($_SESSION['panier'] as $livre) {
-                            $stmt = $connexion->prepare("INSERT INTO EMPRUNTER (nolivre,dateemprunt) VALUES (:nolivre, NOW())");
+                            $stmt = $connexion->prepare("INSERT INTO EMPRUNTER (mel,nolivre,dateemprunt) VALUES (:mel,:nolivre, NOW())");
+                            $stmt->bindParam(":mel",$_SESSION['mel']);
                             $stmt->bindParam(":nolivre", $livre['nolivre']);
-                            $stmt->execute();
+                            if(!$stmt->execute()){
+                                throw new Exception('Erreur lors de l\'insertion du livre');
+                            }
                         }
                         $connexion->commit();
                         $_SESSION['panier'] = array();
@@ -91,7 +116,7 @@ session_start();
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 d-flex align-items-end text-end">
+            <div class="col-md-3 float-end">
                 <?php include_once('authentification.php') ?>
             </div>
         </div>

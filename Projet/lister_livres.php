@@ -11,13 +11,19 @@
 <?php
 include('formulaires/entete.html');
 session_start();
+if(!isset($_SESSION['profil']) || $_SESSION['profil'] !== 'admin'){
+    header("Location: acceuil.php");
+}
 ?>
 
 <div class="row">
     <div class="col-md-9">
         <?php
+        if(isset($_POST['ajouter_livre'])){
         require_once('conf/connexion.php');
-
+        $requeteAuteurs = $connexion->query("SELECT * FROM AUTEUR").
+        $auteur = $requeteAuteurs->fetchAll(PDO::FETCH_OBJ);
+        
         // Vérifier si l'utilisateur est un administrateur
         if (isset($_SESSION['profil']) && $_SESSION['profil'] === 'Administrateur') {
             // Afficher le menu spécifique à l'administrateur (à créer dans formulaires/menu_admin.html)
@@ -37,6 +43,7 @@ session_start();
             }
             echo '</div>';
         }
+    }
         ?>
     </div>
     <div class="col-md-3">
