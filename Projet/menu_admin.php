@@ -1,7 +1,7 @@
 <?php
 session_start();
-if(!isset($_SESSION['profil']) || $_SESSION['profil'] !== 'admin'){
-    header('Location:acceuil.php');
+if(isset($_SESSION['profil']) && $_SESSION['profil'] == 'membre'){
+    header('Location:accueil.php');
     exit();
 }
 ?>
@@ -21,41 +21,43 @@ if(!isset($_SESSION['profil']) || $_SESSION['profil'] !== 'admin'){
             <?php
             require_once('conf/connexion.php');
 
+            $afficherFormulaire = false;
+            if(isset($_POST['ajouter'])){
+                $afficherFormulaire = true;
+            }
             // Si le formulaire d'ajout de livre est soumis
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_livre'])) {
-                $auteur = $_POST['auteur'];
-                $titre = $_POST['titre'];
-                $isbn13 = $_POST['isbn13'];
-                $anneeparution = $_POST['anneeparution'];
-                $resume = $_POST['resume'];
-                $image = $_POST['image'];
+            if (isset($_POST['ajouter_livre'])) {
+                $auteur = isset($_POST['auteur'])? $_POST['auteur'] : null;
+                $titre = isset($_POST['titre'])? $_POST['titre'] : null;
+                $isbn13 = isset($_POST['isbn13'])? $_POST['isbn13'] : null;
+                $anneeparution = isset($_POST['anneeparution'])? $_POST['anneeparution'] : null;
+                $resume = isset($_POST['resume'])? $_POST['resume'] : null;
+                $dateajout = date('Y-m-d H:i:s');
+                $image = isset($_POST['image']) ? $_POST['image'] : null;
             
                 // Ajouter le livre à la base de données
-                $requeteAjoutLivre = $connexion->prepare("INSERT INTO livre (noauteur, titre, isbn13, anneeparution, resume, image) VALUES (:noauteur, :titre, :isbn13, :anneeparution, :resume, :image)");
+                $requeteAjoutLivre = $connexion->prepare("INSERT INTO LIVRE (noauteur, titre, isbn13, anneeparution, resume,dateajout, image) VALUES (:noauteur,:titre, :isbn13, :anneeparution, :resume,:dateajout, :image)");
                 $requeteAjoutLivre->bindParam(':noauteur', $auteur);
                 $requeteAjoutLivre->bindParam(':titre', $titre);
                 $requeteAjoutLivre->bindParam(':isbn13', $isbn13);
                 $requeteAjoutLivre->bindParam(':anneeparution', $anneeparution);
                 $requeteAjoutLivre->bindParam(':resume', $resume);
+                $requeteAjoutLivre->bindParam(':dateajout',$dateajout);
                 $requeteAjoutLivre->bindParam(':image', $image);
-                $uploadDir = '\images';
-                $uploadFile = $uploadDir . basename($_FILES['image']['name']);
-                if(move_uploaded_file($_FILES['image']['tmp_name'], $uploadFile))
-            
-                if ($requeteAjoutLivre->execute()) {
+                if($requeteAjoutLivre->execute()){
                     echo '<p>Livre ajouté avec succès.</p>';
                 } else {
                     echo '<p>Erreur lors de l\'ajout du livre.</p>';
-                }
+                } 
             }
-            
+               
             ?>
             <div class="col-md-8">
                 <h2>La Bibliothèque de Moulinsart est fermée au public jusqu'à nouvel ordre. Mais il vous est possible de réserver et retirer vos livres via notre service Biblio Drive !</h2>
                 <div class="border p-3">
-                    <form method="post" action="lister_livres.php">
-                        <button type="submit" name="livre">Ajouter un livre</button>
-                        <button type="submit" name="membre">Créer un membre</button>
+                    <form method="post">
+                        <button type="submit" class="btn" name="ajouter">Ajouter un livre</button>
+                        <a href="membre.php" class="btn" type="button" name="membre">Créer un membre</a>
                     </form>
                 </div>
             </div>
@@ -66,8 +68,11 @@ if(!isset($_SESSION['profil']) || $_SESSION['profil'] !== 'admin'){
         <div class="row">
             <div class="col-md-8 d-flex justify-content-center text-center align-items-center">
                 <div class="col-md-5">
-                    <form method="post" action="menu_admin.php" enctype="multipart/form-data">
-                        <h1 class="text-danger text-center">Ajouter un livre</h1>
+                <h1 class="text-danger text-center">Ajouter un livre</h1>
+                    <?php
+                    if($afficherFormulaire){
+                    ?>
+                    <form method="post">
                         <div class="mb-3">
                             <label for="auteur" class="form-label">Auteur :</label>
                             <select class="form-select" name="auteur" required>
@@ -98,9 +103,12 @@ if(!isset($_SESSION['profil']) || $_SESSION['profil'] !== 'admin'){
                         </div>
                         <div class="mb-3">
                             <label for="image" class="form-label">Image :</label>
-                            <input type="file" class="form-control" name="image" accept="image/*" required>
+                            <input type="text" class="form-control" name="image" required>
                         </div>
-                        <input type="submit" class="btn btn-primary" value="Ajouter">
+                        <input type="submit" class="btn btn-secondary" value="Ajouter" name="ajouter_livre">
+                        <?php
+                    }
+                        ?>
                     </form>
                 </div>
             </div>
